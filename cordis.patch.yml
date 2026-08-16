@@ -1,0 +1,7 @@
+# 作为 dsh.bundle 安装进 profile 后，Loader 按包名解析该插件行。
+# 使用方式：在项目目录执行
+#   dsh plugin --profile <profile> add .
+# 本地开发请使用 create-dsh-plugin 生成的 cordis.dev.patch.yml（绝对路径指向 src/index.ts）。
+- insert:
+    - id: lark-connector
+      name: lark-connector

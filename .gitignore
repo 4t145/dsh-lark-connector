@@ -1,0 +1,11 @@
+node_modules/
+lib/
+*.tgz
+*.log
+.DS_Store
+
+# Local development-only patch with machine-specific absolute paths.
+cordis.dev.patch.yml
+
+# Agent-local instructions are not part of the published plugin.
+agents.md
