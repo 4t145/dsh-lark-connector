@@ -4,4 +4,4 @@
 # 本地开发请使用 create-dsh-plugin 生成的 cordis.dev.patch.yml（绝对路径指向 src/index.ts）。
 - insert:
     - id: lark-connector
-      name: lark-connector
+      name: "@4t145/lark-connector"
