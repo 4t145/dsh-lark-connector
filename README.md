@@ -20,7 +20,7 @@
 
 ## 安装
 
-在 DSH profile 中安装本插件：
+插件以 `lark-connector` 名称发布在 npm。发布后可以直接把 npm 包安装到 DSH profile；也可以克隆源码本地安装：
 
 ```sh
 npm install
@@ -40,6 +40,8 @@ dsh plugin --profile web add /path/to/dsh-lark-connector
 4. 将机器人加入需要响应的群聊。
 
 ## Web 设置
+
+![配置界面预览](docs/preview.png)
 
 打开 DSH 设置中的“飞书连接器”页面，可以配置：
 
@@ -112,6 +114,21 @@ npm run build
 - src/client/：DSH Web 设置页和 Typert 客户端 RPC。
 - src/typert.host.ts：Host 端 RPC manifest。
 - cordis.patch.yml：bundle 安装时使用的 Cordis 插件入口配置。
+
+## 发布
+
+本包通过 GitHub Actions 使用 npm Trusted Publishing（OIDC）发布，不需要长期保存的 NPM_TOKEN：
+
+- .github/workflows/ci.yml：push 到 main 和 PR 时运行 typecheck、lint、格式检查、测试与构建。
+- .github/workflows/npm-publish.yml：push `v*` tag（或手动触发）时，在检查与构建通过后执行 `npm publish --provenance --access public`。
+
+npm 包设置中的 Trusted Publisher 需要填写：
+
+- Repository：`4t145/dsh-lark-connector`
+- Workflow filename：`npm-publish.yml`
+- Environment：留空
+
+首个版本需要先用已登录的 npm 账号手动发布一次以创建包条目，然后配置 Trusted Publisher，之后的版本由 tag 自动发布。
 
 ## 许可证
 

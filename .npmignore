@@ -1,0 +1,6 @@
+node_modules/
+*.tsbuildinfo
+cordis.dev.patch.yml
+agents.md
+.npm-debug.log*
+npm-debug.log*
