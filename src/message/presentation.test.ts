@@ -139,6 +139,7 @@ describe("LarkTurnPresentation", () => {
 
     await presentation.start();
 
+    await expect(presentation.fail("error fallback")).resolves.toBe(false);
     await expect(presentation.complete("fallback")).resolves.toBe(false);
   });
 });

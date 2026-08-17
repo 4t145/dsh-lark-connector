@@ -180,11 +180,12 @@ export class LarkTurnPresentation {
     return !this.cardUnavailable && this.cardMessageId !== null;
   }
 
-  async fail(message: string): Promise<void> {
-    if (!this.config.streamOutput) return;
+  async fail(message: string): Promise<boolean> {
+    if (!this.config.streamOutput) return false;
     appendEntry(this.entries, "text", message);
     this.status = "failed";
     await this.flushNow();
+    return !this.cardUnavailable && this.cardMessageId !== null;
   }
 
   private scheduleFlush(): void {

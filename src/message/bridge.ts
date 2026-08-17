@@ -139,9 +139,12 @@ export class LarkMessageBridge {
       this.logger.error("failed to process Lark message: %s", message);
       if (event.message.message_id !== "") {
         try {
-          if (presentation !== undefined && this.config.streamOutput)
-            await presentation.fail(ERROR_REPLY);
-          else await this.connection.replyText(event.message.message_id, ERROR_REPLY);
+          const displayedError =
+            presentation !== undefined && this.config.streamOutput
+              ? await presentation.fail(ERROR_REPLY)
+              : false;
+          if (!displayedError)
+            await this.connection.replyText(event.message.message_id, ERROR_REPLY);
         } catch (replyError) {
           this.logger.error(
             "failed to send Lark error reply: %s",
