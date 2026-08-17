@@ -3,7 +3,7 @@ import type { Logger as LarkSdkLogger } from "@larksuiteoapi/node-sdk";
 import type { IncomingMessageEvent } from "./message-router.ts";
 import type { MessageBridgeConfig } from "../config.ts";
 import type { LarkCredentials } from "../credentials.ts";
-import { AgentSessionRouter } from "./agent-sessions.ts";
+import { AgentSessionRouter, AgentTurnError } from "./agent-sessions.ts";
 import { LarkTurnPresentation } from "./presentation.ts";
 import { chunkReply } from "./assistant-output.ts";
 import { MessageDedupe } from "./dedupe.ts";
@@ -138,13 +138,16 @@ export class LarkMessageBridge {
       this.lastError = message;
       this.logger.error("failed to process Lark message: %s", message);
       if (event.message.message_id !== "") {
+        const replyText =
+          error instanceof AgentTurnError && message !== ""
+            ? "本轮运行失败：" + message
+            : ERROR_REPLY;
         try {
           const displayedError =
             presentation !== undefined && this.config.streamOutput
-              ? await presentation.fail(ERROR_REPLY)
+              ? await presentation.fail(replyText)
               : false;
-          if (!displayedError)
-            await this.connection.replyText(event.message.message_id, ERROR_REPLY);
+          if (!displayedError) await this.connection.replyText(event.message.message_id, replyText);
         } catch (replyError) {
           this.logger.error(
             "failed to send Lark error reply: %s",

@@ -9,8 +9,15 @@ import { createUserMessage } from "@deepseek-ai/dsh-llm";
 import type { Context } from "@deepseek-ai/cordis";
 import type { SessionEvent } from "@deepseek-ai/dsh-session/types";
 import type { MessageBridgeConfig } from "../config.ts";
-import { assistantTextAfter } from "./assistant-output.ts";
+import { assistantTextAfter, turnFailureAfter } from "./assistant-output.ts";
 import { larkChatSessionId } from "./session-id.ts";
+
+export class AgentTurnError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = "AgentTurnError";
+  }
+}
 
 interface SessionRuntime {
   agent: Agent;
@@ -205,6 +212,8 @@ export class AgentSessionRouter {
       );
       await agent.whenIdle();
       await this.ctx.sessions.flush(agent.session);
+      const failure = turnFailureAfter(agent.session.events, firstSeq);
+      if (failure !== undefined) throw new AgentTurnError(failure);
       return assistantTextAfter(agent.session.events, firstSeq);
     } finally {
       stop?.();
