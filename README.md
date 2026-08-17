@@ -20,7 +20,7 @@
 
 ## 安装
 
-插件以 `lark-connector` 名称发布在 npm。发布后可以直接把 npm 包安装到 DSH profile；也可以克隆源码本地安装：
+插件以 `@4t145/lark-connector` 名称发布在 npm。发布后可以直接把 npm 包安装到 DSH profile；也可以克隆源码本地安装：
 
 ```sh
 npm install
