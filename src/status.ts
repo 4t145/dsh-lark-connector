@@ -27,6 +27,10 @@ export interface LarkConnectorStatusView {
   agentPreset: string;
   modelProvider: string;
   model: string;
+  thinkingReaction: boolean;
+  streamOutput: boolean;
+  showThoughts: boolean;
+  showTools: boolean;
   checkedAt: number;
   apps: LarkBridgeStatusView[];
 }

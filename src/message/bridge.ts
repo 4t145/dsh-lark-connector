@@ -4,6 +4,7 @@ import type { IncomingMessageEvent } from "./message-router.ts";
 import type { MessageBridgeConfig } from "../config.ts";
 import type { LarkCredentials } from "../credentials.ts";
 import { AgentSessionRouter } from "./agent-sessions.ts";
+import { LarkTurnPresentation } from "./presentation.ts";
 import { chunkReply } from "./assistant-output.ts";
 import { MessageDedupe } from "./dedupe.ts";
 import { LarkConnection } from "./lark-connection.ts";
@@ -88,6 +89,8 @@ export class LarkMessageBridge {
   private async handleMessage(event: IncomingMessageEvent): Promise<void> {
     this.receivedCount += 1;
     this.lastEventAt = Date.now();
+    let reactionId: string | null = null;
+    let presentation: LarkTurnPresentation | undefined;
     try {
       const input = routeUserInput(event, await this.connection.getBotOpenId());
       if (input === null || !this.dedupe.accept(input.messageId)) return;
@@ -108,19 +111,37 @@ export class LarkMessageBridge {
         input.senderOpenId +
         "）】\n" +
         input.text;
-      const output = await this.sessions.run(input.chatId, contextualText, metadata.chatTitle);
-      for (const chunk of chunkReply(
-        output === "" ? EMPTY_REPLY : output,
-        this.config.replyChunkSize,
-      ))
-        await this.connection.replyText(input.messageId, chunk);
+      if (this.config.thinkingReaction)
+        reactionId = await this.connection.addReaction(input.messageId);
+      presentation = new LarkTurnPresentation(this.connection, input.messageId, {
+        thinkingReaction: this.config.thinkingReaction,
+        streamOutput: this.config.streamOutput,
+        showThoughts: this.config.showThoughts,
+        showTools: this.config.showTools,
+      });
+      await presentation.start();
+      const output = await this.sessions.run(
+        input.chatId,
+        contextualText,
+        metadata.chatTitle,
+        (sessionEvent) => presentation?.accept(sessionEvent),
+      );
+      const displayed = await presentation.complete(output === "" ? EMPTY_REPLY : output);
+      if (!displayed)
+        for (const chunk of chunkReply(
+          output === "" ? EMPTY_REPLY : output,
+          this.config.replyChunkSize,
+        ))
+          await this.connection.replyText(input.messageId, chunk);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.lastError = message;
       this.logger.error("failed to process Lark message: %s", message);
       if (event.message.message_id !== "") {
         try {
-          await this.connection.replyText(event.message.message_id, ERROR_REPLY);
+          if (presentation !== undefined && this.config.streamOutput)
+            await presentation.fail(ERROR_REPLY);
+          else await this.connection.replyText(event.message.message_id, ERROR_REPLY);
         } catch (replyError) {
           this.logger.error(
             "failed to send Lark error reply: %s",
@@ -128,6 +149,9 @@ export class LarkMessageBridge {
           );
         }
       }
+    } finally {
+      if (reactionId !== null && event.message.message_id !== "")
+        await this.connection.removeReaction(event.message.message_id, reactionId);
     }
   }
 }

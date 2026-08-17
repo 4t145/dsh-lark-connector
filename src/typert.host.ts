@@ -5,6 +5,10 @@ const workspaceRequestSchema = z.object({
   agentPreset: z.string(),
   modelProvider: z.string(),
   model: z.string(),
+  thinkingReaction: z.boolean(),
+  streamOutput: z.boolean(),
+  showThoughts: z.boolean(),
+  showTools: z.boolean(),
 });
 
 const statusSchema = z.object({
@@ -14,6 +18,10 @@ const statusSchema = z.object({
   agentPreset: z.string(),
   modelProvider: z.string(),
   model: z.string(),
+  thinkingReaction: z.boolean(),
+  streamOutput: z.boolean(),
+  showThoughts: z.boolean(),
+  showTools: z.boolean(),
   checkedAt: z.number(),
   apps: z.array(
     z.object({

@@ -46,6 +46,10 @@ interface LarkConnectorSectionFace {
     agentPreset: string;
     modelProvider: string;
     model: string;
+    thinkingReaction: boolean;
+    streamOutput: boolean;
+    showThoughts: boolean;
+    showTools: boolean;
   }) => Promise<LarkConnectorStatusView>;
 }
 interface LarkClientContext extends ClientContext {
@@ -60,6 +64,10 @@ interface LarkStatusRemote {
     agentPreset: string;
     modelProvider: string;
     model: string;
+    thinkingReaction: boolean;
+    streamOutput: boolean;
+    showThoughts: boolean;
+    showTools: boolean;
   }) => Promise<RemoteResult<LarkConnectorStatusView>>;
 }
 
@@ -150,6 +158,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
     agentPreset: string;
     modelProvider: string;
     model: string;
+    thinkingReaction: boolean;
+    streamOutput: boolean;
+    showThoughts: boolean;
+    showTools: boolean;
   }>();
   const [presets, setPresets] = useState<readonly { id: string; name?: string; broken?: string }[]>(
     [],
@@ -178,6 +190,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
             agentPreset: next.agentPreset,
             modelProvider: next.modelProvider,
             model: next.model,
+            thinkingReaction: next.thinkingReaction,
+            streamOutput: next.streamOutput,
+            showThoughts: next.showThoughts,
+            showTools: next.showTools,
           },
       );
       setStatusError(undefined);
@@ -212,6 +228,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
         agentPreset: next.agentPreset,
         modelProvider: next.modelProvider,
         model: next.model,
+        thinkingReaction: next.thinkingReaction,
+        streamOutput: next.streamOutput,
+        showThoughts: next.showThoughts,
+        showTools: next.showTools,
       });
       setStatusError(undefined);
     } catch (error) {
@@ -331,6 +351,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
                 agentPreset: current?.agentPreset ?? "",
                 modelProvider: current?.modelProvider ?? "",
                 model: current?.model ?? "",
+                thinkingReaction: current?.thinkingReaction ?? true,
+                streamOutput: current?.streamOutput ?? true,
+                showThoughts: current?.showThoughts ?? true,
+                showTools: current?.showTools ?? true,
               }));
             }}
           />
@@ -346,6 +370,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
                 agentPreset: event.target.value,
                 modelProvider: current?.modelProvider ?? "",
                 model: current?.model ?? "",
+                thinkingReaction: current?.thinkingReaction ?? true,
+                streamOutput: current?.streamOutput ?? true,
+                showThoughts: current?.showThoughts ?? true,
+                showTools: current?.showTools ?? true,
               }));
             }}
           >
@@ -380,6 +408,10 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
                 agentPreset: current?.agentPreset ?? "",
                 modelProvider,
                 model,
+                thinkingReaction: current?.thinkingReaction ?? true,
+                streamOutput: current?.streamOutput ?? true,
+                showThoughts: current?.showThoughts ?? true,
+                showTools: current?.showTools ?? true,
               }));
             }}
           >
@@ -401,6 +433,33 @@ function LarkConnectorSection(props: LarkConnectorSectionFace & SettingsSectionO
             )}
           </select>
         </label>
+        <div style={{ display: "grid", gap: 8 }}>
+          <span style={labelStyle}>{t("presentationTitle")}</span>
+          {(["thinkingReaction", "streamOutput", "showThoughts", "showTools"] as const).map(
+            (key) => (
+              <label
+                key={key}
+                style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13 }}
+              >
+                <input
+                  type="checkbox"
+                  checked={defaultsDraft?.[key] ?? true}
+                  disabled={
+                    defaultsDraft === undefined ||
+                    ((key === "showThoughts" || key === "showTools") && !defaultsDraft.streamOutput)
+                  }
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setDefaultsDraft((current) =>
+                      current === undefined ? current : { ...current, [key]: checked },
+                    );
+                  }}
+                />
+                <span>{t(key)}</span>
+              </label>
+            ),
+          )}
+        </div>
         <small style={mutedStyle}>{t("defaultsHint")}</small>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <Button

@@ -42,6 +42,11 @@ export const zh = {
   connecting: "连接中",
   connectionError: "连接错误",
   stopped: "已停止",
+  presentationTitle: "飞书消息展示",
+  thinkingReaction: "处理期间添加思考表情，完成后移除",
+  streamOutput: "使用交互卡片流式更新回复",
+  showThoughts: "在卡片中展示可折叠思维过程",
+  showTools: "按时间线展示工具调用和结果",
 } as const;
 
 export type LarkConnectorLocaleKey = keyof typeof zh;
@@ -90,4 +95,9 @@ export const en: Record<LarkConnectorLocaleKey, string> = {
   connecting: "Connecting",
   connectionError: "Connection error",
   stopped: "Stopped",
+  presentationTitle: "Feishu message presentation",
+  thinkingReaction: "Add a thinking reaction while processing and remove it when done",
+  streamOutput: "Stream replies by updating an interactive card",
+  showThoughts: "Show collapsible reasoning in the card",
+  showTools: "Show tool calls and results in the timeline",
 };

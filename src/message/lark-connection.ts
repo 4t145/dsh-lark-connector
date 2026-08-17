@@ -106,6 +106,47 @@ export class LarkConnection {
     });
   }
 
+  public async replyCard(messageId: string, card: object): Promise<string | null> {
+    const response = await this.client.im.message.reply({
+      path: { message_id: messageId },
+      data: {
+        content: JSON.stringify(card),
+        msg_type: "interactive",
+        reply_in_thread: false,
+      },
+    });
+    return response.data?.message_id ?? null;
+  }
+
+  public async patchCard(messageId: string, card: object): Promise<void> {
+    await this.client.im.v1.message.patch({
+      path: { message_id: messageId },
+      data: { content: JSON.stringify(card) },
+    });
+  }
+
+  public async addReaction(messageId: string, emoji = "THINKING"): Promise<string | null> {
+    try {
+      const response = await this.client.im.messageReaction.create({
+        path: { message_id: messageId },
+        data: { reaction_type: { emoji_type: emoji } },
+      });
+      return response.data?.reaction_id ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  public async removeReaction(messageId: string, reactionId: string): Promise<void> {
+    try {
+      await this.client.im.messageReaction.delete({
+        path: { message_id: messageId, reaction_id: reactionId },
+      });
+    } catch {
+      // Reaction cleanup is best-effort and must not fail the turn.
+    }
+  }
+
   private async getChatTitle(
     chatId: string,
     chatType: "p2p" | "group",

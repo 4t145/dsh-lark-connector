@@ -70,6 +70,10 @@ export function apply(ctx: Context, config: ConfigView) {
       agentPreset: Schema.string().default(""),
       modelProvider: Schema.string().default(""),
       model: Schema.string().default(""),
+      thinkingReaction: Schema.boolean().default(true),
+      streamOutput: Schema.boolean().default(true),
+      showThoughts: Schema.boolean().default(true),
+      showTools: Schema.boolean().default(true),
     }),
     {
       base: {
@@ -77,6 +81,10 @@ export function apply(ctx: Context, config: ConfigView) {
         agentPreset: config.bridge.agentPreset,
         modelProvider: config.bridge.modelProvider,
         model: config.bridge.model,
+        thinkingReaction: config.bridge.thinkingReaction,
+        streamOutput: config.bridge.streamOutput,
+        showThoughts: config.bridge.showThoughts,
+        showTools: config.bridge.showTools,
       },
     },
   );
@@ -93,6 +101,10 @@ export function apply(ctx: Context, config: ConfigView) {
         agentPreset: request.agentPreset.trim(),
         modelProvider: request.modelProvider.trim(),
         model: request.model.trim(),
+        thinkingReaction: request.thinkingReaction,
+        streamOutput: request.streamOutput,
+        showThoughts: request.showThoughts,
+        showTools: request.showTools,
       };
       await ctx.workspaceRegistry.create(
         normalized.workspace === "" ? process.cwd() : normalized.workspace,
@@ -231,6 +243,10 @@ function connectorStatus(
     agentPreset: bridge.agentPreset,
     modelProvider: bridge.modelProvider,
     model: bridge.model,
+    thinkingReaction: bridge.thinkingReaction,
+    streamOutput: bridge.streamOutput,
+    showThoughts: bridge.showThoughts,
+    showTools: bridge.showTools,
     checkedAt: Date.now(),
     apps: state.apps.map((app): LarkBridgeStatusView => {
       const runtimeBridge = state.bridges.get(app.entry.id);

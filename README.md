@@ -50,6 +50,12 @@ dsh plugin --profile web add /path/to/dsh-lark-connector
 - 飞书会话 Workspace
 - 新建飞书会话使用的 Agent preset
 - 新建飞书会话使用的模型 Provider 和 Model
+- 处理期间是否添加 THINKING 表情，并在完成后移除
+- 是否使用交互卡片流式更新回复
+- 是否在卡片中展示可折叠思维过程
+- 是否在卡片时间线中展示工具调用和结果
+
+卡片展示默认参考 lark-acp：思考和工具调用会合并到同一张 Feishu Card，并在生成期间持续更新。若卡片接口不可用，会自动回退为普通文本回复。
 
 保存的默认配置只影响之后新建的飞书 session，不会修改已经存在的 session。
 

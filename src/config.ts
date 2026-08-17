@@ -22,6 +22,10 @@ export interface MessageBridgeConfig {
   agentPreset: string;
   modelProvider: string;
   model: string;
+  thinkingReaction: boolean;
+  streamOutput: boolean;
+  showThoughts: boolean;
+  showTools: boolean;
   replyChunkSize: number;
   dedupeCapacity: number;
 }
@@ -48,6 +52,10 @@ export const DEFAULT_MESSAGE_BRIDGE: Readonly<MessageBridgeConfig> = Object.free
   agentPreset: "",
   modelProvider: "",
   model: "",
+  thinkingReaction: true,
+  streamOutput: true,
+  showThoughts: true,
+  showTools: true,
   replyChunkSize: 3_500,
   dedupeCapacity: 2_000,
 });
@@ -66,6 +74,10 @@ const MessageBridgeSchema: Schema<MessageBridgeConfig> = Schema.object({
   agentPreset: Schema.string().default(DEFAULT_MESSAGE_BRIDGE.agentPreset),
   modelProvider: Schema.string().default(DEFAULT_MESSAGE_BRIDGE.modelProvider),
   model: Schema.string().default(DEFAULT_MESSAGE_BRIDGE.model),
+  thinkingReaction: Schema.boolean().default(DEFAULT_MESSAGE_BRIDGE.thinkingReaction),
+  streamOutput: Schema.boolean().default(DEFAULT_MESSAGE_BRIDGE.streamOutput),
+  showThoughts: Schema.boolean().default(DEFAULT_MESSAGE_BRIDGE.showThoughts),
+  showTools: Schema.boolean().default(DEFAULT_MESSAGE_BRIDGE.showTools),
   replyChunkSize: Schema.number()
     .min(500)
     .max(4_000)

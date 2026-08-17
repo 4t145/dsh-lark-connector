@@ -7,6 +7,7 @@ import "@deepseek-ai/dsh-session-title";
 import "@deepseek-ai/dsh-workspace";
 import { createUserMessage } from "@deepseek-ai/dsh-llm";
 import type { Context } from "@deepseek-ai/cordis";
+import type { SessionEvent } from "@deepseek-ai/dsh-session/types";
 import type { MessageBridgeConfig } from "../config.ts";
 import { assistantTextAfter } from "./assistant-output.ts";
 import { larkChatSessionId } from "./session-id.ts";
@@ -39,7 +40,12 @@ export class AgentSessionRouter {
     this.config = config;
   }
 
-  public async run(chatId: string, text: string, title?: string): Promise<string> {
+  public async run(
+    chatId: string,
+    text: string,
+    title?: string,
+    onEvent?: (event: SessionEvent) => void,
+  ): Promise<string> {
     const runtime = await this.getRuntime(chatId);
     if (title !== undefined && title !== "")
       this.ctx.sessionTitle.rename(runtime.agent.session, title);
@@ -47,7 +53,7 @@ export class AgentSessionRouter {
     const output = runtime.queue.then(async () => {
       runtime.running = true;
       try {
-        return await this.runTurn(runtime.agent, text);
+        return await this.runTurn(runtime.agent, text, onEvent);
       } finally {
         runtime.running = false;
         runtime.lastActivityAt = Date.now();
@@ -181,13 +187,27 @@ export class AgentSessionRouter {
     await workspace.attachSession(agent.id);
   }
 
-  private async runTurn(agent: Agent, text: string): Promise<string> {
+  private async runTurn(
+    agent: Agent,
+    text: string,
+    onEvent?: (event: SessionEvent) => void,
+  ): Promise<string> {
     const firstSeq = agent.session.seq;
-    agent.followup(
-      createUserMessage({ content: [{ type: "text", text }], source: { kind: "user" } }),
-    );
-    await agent.whenIdle();
-    await this.ctx.sessions.flush(agent.session);
-    return assistantTextAfter(agent.session.events, firstSeq);
+    const stop =
+      onEvent === undefined
+        ? undefined
+        : agent.ctx.on("session/event", (session, event) => {
+            if (session === agent.session && event.seq >= firstSeq) onEvent(event);
+          });
+    try {
+      agent.followup(
+        createUserMessage({ content: [{ type: "text", text }], source: { kind: "user" } }),
+      );
+      await agent.whenIdle();
+      await this.ctx.sessions.flush(agent.session);
+      return assistantTextAfter(agent.session.events, firstSeq);
+    } finally {
+      stop?.();
+    }
   }
 }

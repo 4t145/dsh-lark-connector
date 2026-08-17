@@ -9,6 +9,10 @@ export class LarkConnectorStatusService extends TypertRemoteService {
     agentPreset: string;
     modelProvider: string;
     model: string;
+    thinkingReaction: boolean;
+    streamOutput: boolean;
+    showThoughts: boolean;
+    showTools: boolean;
   }) => Promise<LarkConnectorStatusView>;
 
   public constructor(
@@ -19,6 +23,10 @@ export class LarkConnectorStatusService extends TypertRemoteService {
       agentPreset: string;
       modelProvider: string;
       model: string;
+      thinkingReaction: boolean;
+      streamOutput: boolean;
+      showThoughts: boolean;
+      showTools: boolean;
     }) => Promise<LarkConnectorStatusView>,
   ) {
     super(ctx, "larkConnectorStatus", { namespace: "larkConnector" });
@@ -35,6 +43,10 @@ export class LarkConnectorStatusService extends TypertRemoteService {
     agentPreset: string;
     modelProvider: string;
     model: string;
+    thinkingReaction: boolean;
+    streamOutput: boolean;
+    showThoughts: boolean;
+    showTools: boolean;
   }): Promise<LarkConnectorStatusView> {
     return this.saveDefaults(request);
   }

@@ -7,6 +7,10 @@ const workspaceRequestSchema = z.object({
   agentPreset: z.string(),
   modelProvider: z.string(),
   model: z.string(),
+  thinkingReaction: z.boolean(),
+  streamOutput: z.boolean(),
+  showThoughts: z.boolean(),
+  showTools: z.boolean(),
 });
 
 const statusSchema = z.object({
@@ -16,6 +20,10 @@ const statusSchema = z.object({
   agentPreset: z.string(),
   modelProvider: z.string(),
   model: z.string(),
+  thinkingReaction: z.boolean(),
+  streamOutput: z.boolean(),
+  showThoughts: z.boolean(),
+  showTools: z.boolean(),
   checkedAt: z.number(),
   apps: z.array(
     z.object({
@@ -54,6 +62,10 @@ declare module "@deepseek-ai/dsh-typert-protocol" {
         agentPreset: string;
         modelProvider: string;
         model: string;
+        thinkingReaction: boolean;
+        streamOutput: boolean;
+        showThoughts: boolean;
+        showTools: boolean;
       }): Promise<RemoteResult<LarkConnectorStatusView>>;
     };
   }
