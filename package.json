@@ -1,6 +1,6 @@
 {
   "name": "@4t145/lark-connector",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Connect Feishu and Lark chats to DeepSeek Harness sessions",
   "type": "module",
   "main": "./lib/index.js",
