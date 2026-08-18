@@ -72,10 +72,10 @@ declare module "@deepseek-ai/dsh-typert-protocol" {
 }
 
 export const TYPERT_REMOTE = {
-  package: "lark-connector",
+  package: "@4t145/lark-connector",
   descriptors: [
     {
-      id: "lark-connector#larkConnector/status",
+      id: "@4t145/lark-connector#larkConnector/status",
       service: "larkConnectorStatus",
       namespace: "larkConnector",
       method: "status",
@@ -83,13 +83,13 @@ export const TYPERT_REMOTE = {
       parameters: [],
       result: {
         mode: "strict",
-        typeSymbol: "lark-connector#LarkConnectorStatusView",
+        typeSymbol: "@4t145/lark-connector#LarkConnectorStatusView",
         schema: statusSchema,
       },
       sourceLocation: { file: "src/remote-service.ts", line: 18, column: 3 },
     },
     {
-      id: "lark-connector#larkConnector/setWorkspace",
+      id: "@4t145/lark-connector#larkConnector/setWorkspace",
       service: "larkConnectorStatus",
       namespace: "larkConnector",
       method: "setWorkspace",
@@ -101,14 +101,14 @@ export const TYPERT_REMOTE = {
           source: "json",
           codec: {
             mode: "strict",
-            typeSymbol: "lark-connector#WorkspaceRequest",
+            typeSymbol: "@4t145/lark-connector#WorkspaceRequest",
             schema: workspaceRequestSchema,
           },
         },
       ],
       result: {
         mode: "strict",
-        typeSymbol: "lark-connector#LarkConnectorStatusView",
+        typeSymbol: "@4t145/lark-connector#LarkConnectorStatusView",
         schema: statusSchema,
       },
       sourceLocation: { file: "src/remote-service.ts", line: 22, column: 3 },
