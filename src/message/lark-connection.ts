@@ -99,6 +99,29 @@ export class LarkConnection {
     };
   }
 
+  /** 下载消息内的图片资源（image_key 即 file_key），返回原始字节与 Content-Type。 */
+  public async downloadImage(
+    messageId: string,
+    imageKey: string,
+  ): Promise<{ data: Uint8Array; contentType?: string }> {
+    const resource = await this.client.im.messageResource.get({
+      params: { type: "image" },
+      path: { message_id: messageId, file_key: imageKey },
+    });
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of resource.getReadableStream())
+      chunks.push(chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk as ArrayBuffer));
+    const headers: Record<string, unknown> =
+      resource.headers !== null && typeof resource.headers === "object"
+        ? (resource.headers as Record<string, unknown>)
+        : {};
+    const rawContentType = headers["content-type"] ?? headers["Content-Type"];
+    return {
+      data: new Uint8Array(Buffer.concat(chunks)),
+      ...(typeof rawContentType === "string" ? { contentType: rawContentType } : {}),
+    };
+  }
+
   public async replyText(messageId: string, text: string): Promise<void> {
     await this.client.im.message.reply({
       path: { message_id: messageId },

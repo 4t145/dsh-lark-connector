@@ -1,19 +1,22 @@
 import type { Context } from "@deepseek-ai/cordis";
 import type { Logger as LarkSdkLogger } from "@larksuiteoapi/node-sdk";
-import type { IncomingMessageEvent } from "./message-router.ts";
+import type { IncomingMessageEvent, RoutedUserInput } from "./message-router.ts";
 import type { MessageBridgeConfig } from "../config.ts";
 import type { LarkCredentials } from "../credentials.ts";
+import type { ImageAttachmentRef, ImageMediaType } from "@deepseek-ai/dsh-attachment";
 import { AgentSessionRouter, AgentTurnError } from "./agent-sessions.ts";
 import { LarkTurnPresentation } from "./presentation.ts";
 import { chunkReply } from "./assistant-output.ts";
 import { MessageDedupe } from "./dedupe.ts";
 import { LarkConnection } from "./lark-connection.ts";
 import { routeUserInput } from "./message-router.ts";
+import { resolveImageMediaType } from "./image-media.ts";
 import type { BridgeConnectionState, LarkBridgeStatusView } from "../status.ts";
 
 const EMPTY_REPLY = "任务已完成，但没有生成文本回复。";
 const ERROR_REPLY = "处理消息时发生错误，请稍后重试。";
 export class LarkMessageBridge {
+  private readonly ctx: Context;
   private readonly logger: ReturnType<Context["logger"]>;
   private readonly connection: LarkConnection;
   private readonly sessions: AgentSessionRouter;
@@ -35,6 +38,7 @@ export class LarkMessageBridge {
     credentials: LarkCredentials,
     config: MessageBridgeConfig,
   ) {
+    this.ctx = ctx;
     this.logger = ctx.logger("lark-message-bridge");
     this.config = config;
     this.appEntryId = appId;
@@ -101,6 +105,21 @@ export class LarkMessageBridge {
         input.senderOpenId,
         event.message.chat_type,
       );
+      const collected = await this.collectImages(input);
+      if (input.imageKeys.length > 0 && collected.refs.length === 0 && input.text === "") {
+        this.lastError = "all image downloads failed";
+        await this.connection.replyText(input.messageId, "图片处理失败，请重试或改用文字描述。");
+        return;
+      }
+      let body = input.text;
+      if (body === "" && collected.refs.length > 0) body = "用户发送了图片，请查看。";
+      const imageNotes: string[] = [];
+      if (collected.refs.length > 0)
+        imageNotes.push("附带 " + String(collected.refs.length) + " 张图片");
+      if (collected.failed > 0)
+        imageNotes.push(String(collected.failed) + " 张图片下载失败或格式不支持");
+      if (collected.dropped > 0)
+        imageNotes.push("超过单条数量上限，忽略 " + String(collected.dropped) + " 张图片");
       const contextualText =
         "【飞书会话：" +
         metadata.chatTitle +
@@ -110,7 +129,8 @@ export class LarkMessageBridge {
         "（" +
         input.senderOpenId +
         "）】\n" +
-        input.text;
+        body +
+        (imageNotes.length > 0 ? "\n【" + imageNotes.join("，") + "】" : "");
       if (this.config.thinkingReaction)
         reactionId = await this.connection.addReaction(input.messageId);
       presentation = new LarkTurnPresentation(this.connection, input.messageId, {
@@ -125,6 +145,7 @@ export class LarkMessageBridge {
         contextualText,
         metadata.chatTitle,
         (sessionEvent) => presentation?.accept(sessionEvent),
+        collected.refs,
       );
       const displayed = await presentation.complete(output === "" ? EMPTY_REPLY : output);
       if (!displayed)
@@ -159,6 +180,55 @@ export class LarkMessageBridge {
       if (reactionId !== null && event.message.message_id !== "")
         await this.connection.removeReaction(event.message.message_id, reactionId);
     }
+  }
+
+  /** 下载消息中的图片并批量写入附件存储；失败的图片计数但不阻断文本。 */
+  private async collectImages(input: RoutedUserInput): Promise<{
+    refs: readonly ImageAttachmentRef[];
+    failed: number;
+    dropped: number;
+  }> {
+    if (input.imageKeys.length === 0) return { refs: [], failed: 0, dropped: 0 };
+    const limit = this.ctx.attachments.imageLimits.maxImagesPerMessage;
+    const dropped = Math.max(0, input.imageKeys.length - limit);
+    const prepared: { data: Uint8Array; mediaType: ImageMediaType; name: string }[] = [];
+    let failed = 0;
+    for (const imageKey of input.imageKeys.slice(0, limit)) {
+      try {
+        const { data, contentType } = await this.connection.downloadImage(
+          input.messageId,
+          imageKey,
+        );
+        const mediaType = resolveImageMediaType(contentType, data);
+        if (mediaType === null || data.length === 0) {
+          failed += 1;
+          this.logger.warn("unsupported or empty Lark image %s", imageKey);
+          continue;
+        }
+        prepared.push({ data, mediaType, name: imageKey });
+      } catch (error) {
+        failed += 1;
+        this.logger.warn(
+          "failed to download Lark image %s: %s",
+          imageKey,
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    }
+    const refs: ImageAttachmentRef[] = [];
+    for (const image of prepared) {
+      try {
+        refs.push(await this.ctx.attachments.saveImage(image));
+      } catch (error) {
+        failed += 1;
+        this.logger.error(
+          "failed to save Lark image %s: %s",
+          image.name,
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    }
+    return { refs, failed, dropped };
   }
 }
 function createSdkLogger(logger: ReturnType<Context["logger"]>): LarkSdkLogger {

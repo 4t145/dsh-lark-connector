@@ -29,6 +29,7 @@ export const inject = [
   "workspaceRegistry",
   "settings",
   "sessionTitle",
+  "attachments",
 ];
 
 /** 凭据同步状态（discriminated union）。 */

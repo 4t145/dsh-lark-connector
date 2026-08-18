@@ -6,7 +6,9 @@ import "@deepseek-ai/dsh-session-persistence";
 import "@deepseek-ai/dsh-session-title";
 import "@deepseek-ai/dsh-workspace";
 import { createUserMessage } from "@deepseek-ai/dsh-llm";
+import type { ContentBlock } from "@deepseek-ai/dsh-llm";
 import type { Context } from "@deepseek-ai/cordis";
+import type { ImageAttachmentRef } from "@deepseek-ai/dsh-attachment";
 import type { SessionEvent } from "@deepseek-ai/dsh-session/types";
 import type { MessageBridgeConfig } from "../config.ts";
 import { assistantTextAfter, turnFailureAfter } from "./assistant-output.ts";
@@ -52,6 +54,7 @@ export class AgentSessionRouter {
     text: string,
     title?: string,
     onEvent?: (event: SessionEvent) => void,
+    images?: readonly ImageAttachmentRef[],
   ): Promise<string> {
     const runtime = await this.getRuntime(chatId);
     if (title !== undefined && title !== "")
@@ -60,7 +63,7 @@ export class AgentSessionRouter {
     const output = runtime.queue.then(async () => {
       runtime.running = true;
       try {
-        return await this.runTurn(runtime.agent, text, onEvent);
+        return await this.runTurn(runtime.agent, text, onEvent, images);
       } finally {
         runtime.running = false;
         runtime.lastActivityAt = Date.now();
@@ -198,6 +201,7 @@ export class AgentSessionRouter {
     agent: Agent,
     text: string,
     onEvent?: (event: SessionEvent) => void,
+    images?: readonly ImageAttachmentRef[],
   ): Promise<string> {
     const firstSeq = agent.session.seq;
     const stop =
@@ -206,10 +210,10 @@ export class AgentSessionRouter {
         : agent.ctx.on("session/event", (session, event) => {
             if (session === agent.session && event.seq >= firstSeq) onEvent(event);
           });
+    const content: ContentBlock[] = [{ type: "text", text }];
+    for (const attachment of images ?? []) content.push({ type: "image", attachment });
     try {
-      agent.followup(
-        createUserMessage({ content: [{ type: "text", text }], source: { kind: "user" } }),
-      );
+      agent.followup(createUserMessage({ content, source: { kind: "user" } }));
       await agent.whenIdle();
       await this.ctx.sessions.flush(agent.session);
       const failure = turnFailureAfter(agent.session.events, firstSeq);

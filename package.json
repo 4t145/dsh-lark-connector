@@ -1,6 +1,6 @@
 {
   "name": "@4t145/lark-connector",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Connect Feishu and Lark chats to DeepSeek Harness sessions",
   "type": "module",
   "main": "./lib/index.js",
@@ -46,6 +46,7 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-agent": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-attachment": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-agent-default-model": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-agent-presets": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-credentials": "^0.1.0-rc.6",
@@ -64,6 +65,7 @@
     "@deepseek-ai/dsh-agent-default-model": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-agent-presets": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-api-remotes": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-attachment": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-connection": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.6",

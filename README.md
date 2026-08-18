@@ -8,6 +8,7 @@
 
 - 飞书 WebSocket 长连接：使用飞书官方 Node SDK 接收实时消息，不需要额外部署 Webhook 服务。
 - 私聊与群聊支持：私聊消息直接响应；群聊仅响应明确 @ 机器人的文本消息。
+- 识图能力：自动下载私聊图片消息与富文本 post 中的图片，持久化到 DSH 附件存储后随消息转发给 Agent，供具备视觉能力的模型识图；群聊中的富文本需要 @ 机器人。
 - 会话隔离：每个飞书 chat 映射到独立的 DSH session；同一 chat 内按 FIFO 顺序处理，不同 chat 可以并发处理。
 - 会话恢复与归档替换：使用 DSH session persistence 保存历史；归档后的 chat 会自动创建新的可见 session。
 - 原生 DSH 会话标题：使用飞书聊天标题作为 DSH session 标题，并在消息中标注发送者信息。
@@ -58,6 +59,8 @@ dsh plugin --profile web add /path/to/dsh-lark-connector
 - 是否在卡片时间线中展示工具调用和结果
 
 卡片展示默认参考 lark-acp：思考和工具调用会合并到同一张 Feishu Card，并在生成期间持续更新。若卡片接口不可用，会自动回退为普通文本回复。
+
+图片支持 PNG / JPEG / WebP / GIF：下载后的图片写入 DSH 附件存储，并以 image content block 随用户消息进入会话，DSH 会话界面里也能看到原图。超出单条消息附件数量上限的图片会被忽略；下载失败或格式不支持时降级为纯文本，转发内容中会附带说明。
 
 保存的默认配置只影响之后新建的飞书 session，不会修改已经存在的 session。
 
